@@ -2,27 +2,19 @@
 # Use a Node.js image to build the frontend assets
 FROM node:20-alpine AS build
 
-# Install git to clone the repository
-RUN apk add --no-cache git
-
-# Set a build argument for the GitHub repository URL
-ARG GITHUB_REPO_URL
-ARG GITHUB_BRANCH=main # Default to 'main' branch, can be overridden
-
 # Set the working directory inside the container
 WORKDIR /app
 
-# Clone the repository
-# Ensure your repository is public or you handle authentication (e.g., SSH keys, tokens)
-RUN git clone ${GITHUB_REPO_URL} .
-
-# Checkout a specific branch (optional, but good for consistent builds)
-RUN git checkout ${GITHUB_BRANCH}
+# Copy package.json and package-lock.json (or yarn.lock) to leverage Docker cache
+# These files are now assumed to be in the build context (cloned repo)
+COPY package*.json ./
 
 # Install dependencies
-# Assuming package.json is in the root of the cloned repo
-COPY package*.json ./
 RUN npm install
+
+# Copy the rest of the application code
+# This copies everything from the build context (cloned repo) into /app
+COPY . .
 
 # Build the React application for production
 # Assuming your build output goes to a 'build' folder. If it's 'dist', change this line.
@@ -36,7 +28,7 @@ FROM nginx:alpine
 COPY --from=build /app/build /usr/share/nginx/html
 
 # Copy a custom Nginx configuration file
-# This is crucial for single-page applications to handle routing correctly
+# This file must also be in the root of your GitHub repo
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Expose port 80 (default HTTP port for Nginx)
