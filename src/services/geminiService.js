@@ -1,6 +1,6 @@
 // Servicio adaptado para usar Ollama en vez de Gemini
 
-const OLLAMA_URL = process.env.REACT_APP_OLLAMA_URL || 'http://ollama:11434';
+const OLLAMA_URL = import.meta.env.VITE_OLLAMA_URL || 'http://ollama:11434';
 const OLLAMA_MODEL = 'gemma3'; // Cambiado a gemma3 según indicación
 
 /**
